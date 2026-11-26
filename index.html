@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0e14">
+<title>신혜경 · 막이 오르기 전, 길을 밝히는 사람</title>
+<meta name="description" content="관객이 무대에 닿기까지의 디지털 길을 밝히는 웹/앱 관리자 신혜경입니다.">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<style>
+  /* 부산단디고딕 (눈누 웹폰트) */
+  @font-face{font-family:'BusanDandiGothic';src:url('https://cdn.jsdelivr.net/gh/Project-Noonnu/2610132210@l/l/%EB%B6%80%EC%82%B0%EB%8B%A8%EB%94%94%EA%B3%A0%EB%94%95L.woff2') format('woff2');font-weight:300;font-display:swap}
+  @font-face{font-family:'BusanDandiGothic';src:url('https://cdn.jsdelivr.net/gh/Project-Noonnu/2610132210@l/l/%EB%B6%80%EC%82%B0%EB%8B%A8%EB%94%94%EA%B3%A0%EB%94%95M.woff2') format('woff2');font-weight:500;font-display:swap}
+  @font-face{font-family:'BusanDandiGothic';src:url('https://cdn.jsdelivr.net/gh/Project-Noonnu/2610132210@l/l/%EB%B6%80%EC%82%B0%EB%8B%A8%EB%94%94%EA%B3%A0%EB%94%95B.woff2') format('woff2');font-weight:700;font-display:swap}
+
+  :root{
+    --bg:#0d0e14;          /* 객석의 어둠 */
+    --bg-2:#141621;
+    --card:#1a1d2a;
+    --card-2:#222636;
+    --line:rgba(255,255,255,.09);
+    --text:#f3efe6;
+    --text-soft:#aeb2c2;
+    --gold:#e9b95e;        /* 스포트라이트·초롱불 */
+    --gold-soft:rgba(233,185,94,.14);
+    --blue:#7d93ff;        /* #2f4bbf를 어두운 배경에서 읽히도록 밝힌 색 */
+    --blue-deep:#2f4bbf;
+    --curtain:#7e2230;     /* 무대 막 */
+    --radius:20px;
+    --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;background:var(--bg)}
+  body{
+    margin:0;
+    font-family:'BusanDandiGothic',-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+    font-size:17px;line-height:1.75;color:var(--text);background:var(--bg);
+    word-break:keep-all;overflow-wrap:break-word;
+  }
+  img,svg{display:block;max-width:100%}
+  a{color:var(--gold)}
+  :focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:8px}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 22px}
+
+  /* ── 상단 띠 ───────────────── */
+  .topbar{
+    position:sticky;top:0;z-index:40;background:rgba(13,14,20,.88);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  }
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:56px}
+  .seal{display:flex;align-items:center;gap:10px;min-height:44px;text-decoration:none;color:var(--text);font-weight:700;font-size:16px}
+  .seal i{
+    display:grid;place-items:center;width:32px;height:32px;border-radius:50%;font-style:normal;font-size:16px;font-weight:700;
+    color:var(--bg);background:radial-gradient(circle at 35% 30%,#ffe3a3,var(--gold));box-shadow:0 0 18px rgba(233,185,94,.55);
+  }
+  .motion-btn{
+    display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;
+    border:1px solid var(--line);background:var(--card);font:inherit;font-size:16px;color:var(--text);cursor:pointer;
+  }
+  .motion-btn .dot{width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold)}
+  .motion-btn[aria-pressed="true"] .dot{background:transparent;box-shadow:inset 0 0 0 2px var(--text-soft)}
+
+  /* ── 공통 섹션 ───────────────── */
+  section{padding:76px 0;position:relative}
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:.1em;color:var(--gold);margin:0 0 10px}
+  .eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold)}
+  h2{font-size:clamp(28px,6.6vw,42px);line-height:1.3;margin:0 0 14px;letter-spacing:-.02em;font-weight:700}
+  .lead{color:var(--text-soft);margin:0 0 34px;max-width:40em}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+  /* 섹션마다 위쪽에 은은한 조명 */
+  .lit::before{
+    content:"";position:absolute;left:0;right:0;top:0;margin:0 auto;max-width:900px;height:420px;
+    background:radial-gradient(ellipse at 50% 0,rgba(233,185,94,.08),transparent 65%);pointer-events:none;
+  }
+  .lit > .wrap{position:relative}
+
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+  .reveal.is-in{opacity:1;transform:none}
+  .no-motion .reveal{opacity:1;transform:none;transition:none}
+
+  /* ── 1. 첫 화면: 막이 오르는 무대 ───────────────── */
+  .hero{padding:0;overflow:hidden;background:
+    radial-gradient(ellipse 70% 60% at 50% 0,rgba(233,185,94,.22),transparent 70%),
+    linear-gradient(180deg,#12131c,var(--bg) 80%)}
+  .curtains{position:absolute;inset:0;pointer-events:none;z-index:0}
+  .hero{--cw:clamp(14px,calc(9vw - 20px),150px)}  /* 막 너비: 글자와 겹치지 않게 본문 여백과 연동 */
+  .curtains svg{position:absolute;top:0;height:100%;width:var(--cw)}
+  .curtains .l{left:0}
+  .curtains .r{right:0;transform:scaleX(-1)}
+  .valance{position:absolute;left:0;top:0;width:100%;max-width:none;height:34px;z-index:1;pointer-events:none}
+  .spot{
+    position:absolute;left:50%;top:-10%;width:140%;height:110%;transform:translateX(-50%);pointer-events:none;z-index:0;
+    background:conic-gradient(from 180deg at 50% 0,transparent 160deg,rgba(255,226,160,.10) 172deg,rgba(255,226,160,.16) 180deg,rgba(255,226,160,.10) 188deg,transparent 200deg);
+  }
+  .hero .hero-grid{position:relative;z-index:2;display:grid;gap:26px;padding-top:58px;padding-bottom:10px;
+    padding-left:max(22px,calc(var(--cw) + 14px));padding-right:max(22px,calc(var(--cw) + 14px))}
+  .greet{
+    display:inline-flex;align-items:center;gap:10px;justify-self:start;padding:8px 16px;border-radius:999px;
+    background:var(--gold-soft);border:1px solid rgba(233,185,94,.3);color:#f6dca6;font-weight:500;font-size:16px;
+  }
+  .greet svg{width:18px;height:18px;flex:none}
+  .slogan{font-size:clamp(40px,11.5vw,86px);line-height:1.15;letter-spacing:-.04em;font-weight:700;margin:4px 0 0}
+  .slogan .lit-word{color:var(--gold);text-shadow:0 0 24px rgba(233,185,94,.55),0 0 2px rgba(233,185,94,.6)}
+  .slogan-img{display:none;width:100%;max-width:620px;height:auto}
+  .has-slogan-img .slogan-img{display:block}
+  .has-slogan-img .slogan-text{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .who{display:flex;align-items:center;gap:18px;margin-top:4px}
+  .photo{
+    position:relative;flex:none;width:112px;height:112px;border-radius:50%;overflow:hidden;background:var(--card-2);
+    box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--gold),0 0 40px rgba(233,185,94,.45);
+  }
+  .photo img,.photo svg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .who h1{margin:0;font-size:30px;line-height:1.25;letter-spacing:-.02em}
+  .who h1 small{display:block;font-size:16px;font-weight:500;color:var(--blue);letter-spacing:.02em}
+  .oneline{margin:4px 0 0;color:var(--text-soft);font-size:17px}
+  .hero-actions{display:flex;flex-wrap:wrap;gap:12px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border-radius:999px;
+    font:inherit;font-weight:700;font-size:17px;text-decoration:none;cursor:pointer;border:0;transition:transform .2s var(--ease),box-shadow .2s;
+  }
+  .btn-primary{background:var(--gold);color:#1a1307;box-shadow:0 0 0 0 rgba(233,185,94,0),0 10px 30px -10px rgba(233,185,94,.7)}
+  .btn-ghost{background:transparent;color:var(--text);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.25)}
+  .btn:active{transform:translateY(1px) scale(.98)}
+  .hero-art{position:relative;margin:0 -22px}
+  .hero-art svg{width:100%;height:auto}
+  .lantern-sway{transform-origin:40px 0;animation:sway 5s ease-in-out infinite}
+  .glow{animation:glow 3.6s ease-in-out infinite}
+  .twinkle{animation:glow 2.8s ease-in-out infinite}
+  .twinkle:nth-child(2n){animation-delay:-1.3s}
+  @keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+  @keyframes glow{0%,100%{opacity:.45}50%{opacity:1}}
+  .no-motion .lantern-sway,.no-motion .glow,.no-motion .twinkle{animation:none}
+
+  /* ── 2. 자기소개 ───────────────── */
+  .story{display:grid;gap:28px}
+  .story-text p{margin:0 0 1em;font-size:18px;color:#e2ded5}
+  .story-text p:first-of-type::first-letter{float:left;font-size:3.1em;line-height:1;font-weight:700;color:var(--gold);margin:.06em .12em 0 0}
+  .quote{
+    margin:0;padding:28px 24px;border-radius:var(--radius);font-size:20px;font-weight:500;line-height:1.6;
+    background:linear-gradient(160deg,var(--card-2),var(--card));border:1px solid var(--line);position:relative;overflow:hidden;
+  }
+  .quote::before{content:"“";position:absolute;right:16px;top:-18px;font-size:120px;color:var(--gold);opacity:.18;font-weight:700}
+  .quote span{display:block;margin-top:12px;font-size:16px;font-weight:300;color:var(--text-soft)}
+
+  /* ── 3. 키워드 카드 ───────────────── */
+  .keys{display:grid;gap:16px}
+  .flip{perspective:1000px;border:0;padding:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;width:100%}
+  .flip-inner{display:grid;position:relative;width:100%;min-height:230px;transition:transform .7s var(--ease);transform-style:preserve-3d}
+  .flip.is-flipped .flip-inner{transform:rotateY(180deg)}
+  .no-motion .flip-inner{transition:none}
+  .face{grid-area:1/1;position:relative;padding:24px;border-radius:var(--radius);backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column}
+  .face > span,.face > strong{display:block}
+  .face.front{background:var(--card);border:1px solid var(--line)}
+  .face.back{background:linear-gradient(160deg,#f1c977,var(--gold));color:#1a1307;transform:rotateY(180deg);justify-content:center}
+  .face .num{padding-right:60px;font-size:16px;font-weight:700;color:var(--blue);letter-spacing:.1em}
+  .face .kw{font-size:46px;font-weight:700;letter-spacing:-.03em;line-height:1.15;margin:8px 0 6px}
+  .face .kw-sub{color:var(--text-soft);font-size:16px}
+  .face .hint{margin-top:auto;padding-top:18px;font-size:16px;color:var(--gold);font-weight:500}
+  .face.back p{margin:0;font-size:17px;line-height:1.7}
+  .face.back strong{font-size:21px;margin-bottom:8px}
+  .face .ico{position:absolute;right:20px;top:20px;width:56px;height:56px}
+
+  /* ── 4. 업무 카드 ───────────────── */
+  .works{display:grid;gap:16px}
+  .work{padding:26px 24px;position:relative;overflow:hidden}
+  .work .scene{display:inline-block;font-size:16px;font-weight:500;color:var(--gold);padding:2px 12px;border-radius:999px;background:var(--gold-soft)}
+  .work h3{font-size:23px;margin:12px 0 12px;letter-spacing:-.01em}
+  .work .prob{margin:0 0 12px;padding:12px 14px;background:var(--bg-2);border-radius:12px;font-size:16px;color:var(--text-soft)}
+  .work .prob b{color:#ff9a8a;font-weight:700}
+  .work .sol{margin:0;font-size:17px;color:#e2ded5}
+  .work .sol b{color:var(--gold)}
+  .work .no{position:absolute;right:18px;top:10px;font-size:64px;font-weight:700;color:rgba(255,255,255,.05);line-height:1}
+
+  /* ── 5. 원칙 ───────────────── */
+  .principles{display:grid;gap:14px;padding:0;margin:0;list-style:none}
+  .principles li{display:grid;grid-template-columns:60px 1fr;gap:16px;align-items:start;padding:22px 20px;border-radius:var(--radius);background:var(--card);border:1px solid var(--line)}
+  .principles .mark{
+    display:grid;place-items:center;width:60px;height:60px;border-radius:50%;font-size:24px;font-weight:700;
+    color:var(--gold);border:1.5px solid rgba(233,185,94,.5);background:radial-gradient(circle,rgba(233,185,94,.18),transparent 70%);
+  }
+  .principles h3{margin:2px 0 6px;font-size:20px}
+  .principles p{margin:0;color:var(--text-soft);font-size:16px}
+
+  /* ── 6. 태그 ───────────────── */
+  .pills{display:flex;flex-wrap:wrap;gap:10px;padding:0;margin:0;list-style:none}
+  .pills li{
+    display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;
+    background:var(--card);border:1px solid var(--line);font-size:16px;font-weight:500;color:var(--text);
+  }
+  .pills li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--blue)}
+  .pills li.hot{background:var(--gold-soft);border-color:rgba(233,185,94,.45);color:#f6dca6}
+  .pills li.hot::before{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+
+  /* ── 7. 함께하면 좋은 점 ───────────────── */
+  .goods{display:grid;gap:16px}
+  .good{padding:26px 24px}
+  .good svg{width:52px;height:52px;margin-bottom:14px}
+  .good h3{margin:0 0 8px;font-size:21px}
+  .good p{margin:0;color:var(--text-soft);font-size:16px}
+
+  /* ── 8. 타임라인 ───────────────── */
+  .timeline{position:relative;list-style:none;margin:0;padding:0 0 0 34px}
+  .timeline::before{content:"";position:absolute;left:11px;top:8px;bottom:8px;width:2px;background:linear-gradient(var(--gold),rgba(233,185,94,.1))}
+  .timeline li{position:relative;padding:0 0 30px}
+  .timeline li:last-child{padding-bottom:0}
+  .timeline li::before{content:"";position:absolute;left:-30px;top:6px;width:16px;height:16px;border-radius:50%;background:var(--bg);border:3px solid var(--text-soft)}
+  .timeline li.now::before{background:var(--gold);border-color:var(--gold);box-shadow:0 0 0 6px rgba(233,185,94,.2),0 0 16px var(--gold)}
+  .timeline .when{font-size:16px;font-weight:500;color:var(--gold)}
+  .timeline h3{margin:2px 0 4px;font-size:20px}
+  .timeline p{margin:0;color:var(--text-soft);font-size:16px}
+  .todo{display:inline-block;padding:0 8px;border-radius:6px;background:rgba(255,154,138,.14);color:#ff9a8a;font-weight:700;font-size:16px}
+
+  /* ── 9. FAQ ───────────────── */
+  .faq{display:grid;gap:12px;max-width:820px}
+  .faq details{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .faq details[open]{border-color:rgba(233,185,94,.35)}
+  .faq summary{list-style:none;cursor:pointer;display:flex;gap:12px;align-items:flex-start;padding:18px 20px;min-height:56px;font-weight:700;font-size:17px}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary .q{flex:none;color:var(--gold)}
+  .faq summary .chev{margin-left:auto;flex:none;width:24px;height:24px;transition:transform .3s;color:var(--text-soft)}
+  .faq details[open] .chev{transform:rotate(180deg)}
+  .faq .a{padding:0 20px 20px 46px;margin:0;color:var(--text-soft);font-size:16px}
+
+  /* ── 10. 연락: 커튼콜 ───────────────── */
+  .contact{
+    position:relative;text-align:center;padding:60px 24px 64px;border-radius:28px;overflow:hidden;
+    background:radial-gradient(ellipse 80% 70% at 50% 0,rgba(233,185,94,.25),transparent 70%),var(--card);border:1px solid rgba(233,185,94,.25);
+  }
+  .contact p{margin:0 auto 28px;max-width:30em;color:var(--text-soft)}
+  .contact .eyebrow{justify-content:center}
+  .contact .mail{display:block;margin-top:14px;font-size:16px;color:var(--text-soft)}
+  footer{padding:36px 0 120px;text-align:center;color:var(--text-soft);font-size:16px}
+  footer p{margin:4px 0}
+
+  /* ── 산책하는 초롱이 ───────────────── */
+  .stroll{
+    position:fixed;left:0;right:0;bottom:0;height:84px;z-index:30;pointer-events:none;
+    background:linear-gradient(to top,var(--bg) 70%,rgba(13,14,20,0));
+    opacity:0;transform:translateY(100%);transition:opacity .5s,transform .5s var(--ease);
+  }
+  .stroll.on{opacity:1;transform:none}
+  .stroll::after{content:"";position:absolute;left:0;right:0;bottom:12px;height:1px;background:linear-gradient(90deg,transparent,rgba(233,185,94,.4),transparent)}
+  .walker{position:absolute;bottom:12px;left:0;width:64px;height:72px;pointer-events:auto;cursor:pointer;border:0;padding:0;background:none;-webkit-tap-highlight-color:transparent;transform:translateX(-80px)}
+  .walker svg{width:64px;height:72px;overflow:visible}
+  .walker .body{transform-origin:32px 66px}
+  .walker.walking .body{animation:bob .5s ease-in-out infinite}
+  .walker.walking .leg-l{animation:step .5s ease-in-out infinite}
+  .walker.walking .leg-r{animation:step .5s ease-in-out infinite reverse}
+  .walker.jump .body{animation:hop .6s var(--ease)}
+  .walker.flip svg{transform:scaleX(-1)}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  @keyframes step{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  @keyframes hop{0%{transform:translateY(0) scale(1.08,.9)}35%{transform:translateY(-34px) scale(.96,1.05)}70%{transform:translateY(0) scale(1.06,.92)}100%{transform:none}}
+  .bubble{
+    position:absolute;bottom:88px;left:0;max-width:220px;padding:10px 14px;border-radius:16px;background:var(--gold);color:#1a1307;
+    font-size:16px;font-weight:700;line-height:1.45;opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s;pointer-events:none;
+  }
+  .bubble.show{opacity:1;transform:none}
+  .bubble::after{content:"";position:absolute;bottom:-7px;left:var(--tail,28px);border:8px solid transparent;border-bottom:0;border-top-color:var(--gold)}
+
+  /* ── 넓은 화면 ───────────────── */
+  @media (min-width:720px){
+    .wrap{padding:0 36px}
+    section{padding:104px 0}
+    .keys{grid-template-columns:repeat(3,1fr)}
+    .works{grid-template-columns:repeat(2,1fr)}
+    .goods{grid-template-columns:repeat(3,1fr)}
+    .photo{width:132px;height:132px}
+    .hero-art{margin:0}
+    .hero .hero-grid{padding-top:80px}
+  }
+  @media (min-width:1000px){
+    .hero{min-height:calc(100vh - 56px);display:flex;align-items:center}
+    .hero > .wrap{width:100%}
+    .hero .hero-grid{grid-template-columns:1.15fr .85fr;align-items:center;gap:40px;max-width:1300px}
+    .hero-text{display:grid;gap:22px}
+    .story{grid-template-columns:1.4fr 1fr;align-items:start;gap:56px}
+    .story .quote{position:sticky;top:90px}
+    .principles{grid-template-columns:repeat(3,1fr)}
+    .principles li{grid-template-columns:1fr}
+    .split{display:grid;grid-template-columns:.8fr 1.2fr;gap:56px;align-items:start}
+    .split .head{position:sticky;top:90px}
+  }
+  @media (hover:hover){
+    .btn:hover{transform:translateY(-2px)}
+    .btn-primary:hover{box-shadow:0 0 0 6px rgba(233,185,94,.15),0 10px 30px -10px rgba(233,185,94,.8)}
+    .work,.good{transition:transform .3s var(--ease),border-color .3s}
+    .work:hover,.good:hover{transform:translateY(-3px);border-color:rgba(233,185,94,.35)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+<a class="sr-only" href="#about">본문으로 건너뛰기</a>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="seal" href="#top" aria-label="맨 위로"><i aria-hidden="true">혜</i>신혜경</a>
+    <button class="motion-btn" id="motionBtn" type="button" aria-pressed="false">
+      <span class="dot" aria-hidden="true"></span><span id="motionLabel">움직임 끄기</span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+<!-- 1. 첫 화면: 막이 오르는 무대 -->
+<section class="hero" aria-labelledby="heroName">
+  <div class="spot" aria-hidden="true"></div>
+  <div class="curtains" aria-hidden="true">
+    <svg class="l" viewBox="0 0 200 800" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="fold" x1="0" x2="1">
+          <stop offset="0" stop-color="#4a1018"/><stop offset=".25" stop-color="#8a2534"/><stop offset=".5" stop-color="#5a1420"/>
+          <stop offset=".75" stop-color="#8a2534"/><stop offset="1" stop-color="#3a0c14"/>
+        </linearGradient>
+      </defs>
+      <path d="M0 0 H200 C150 260 120 520 90 800 H0Z" fill="url(#fold)" opacity=".9"/>
+      <path d="M0 0 H200 C150 260 120 520 90 800 H0Z" fill="none" stroke="#e9b95e" stroke-opacity=".25"/>
+    </svg>
+    <svg class="r" viewBox="0 0 200 800" preserveAspectRatio="none">
+      <path d="M0 0 H200 C150 260 120 520 90 800 H0Z" fill="url(#fold)" opacity=".9"/>
+      <path d="M0 0 H200 C150 260 120 520 90 800 H0Z" fill="none" stroke="#e9b95e" stroke-opacity=".25"/>
+    </svg>
+  </div>
+  <svg class="valance" viewBox="0 0 400 34" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 0H400V20Q380 34 360 20T320 20T280 20T240 20T200 20T160 20T120 20T80 20T40 20T0 20Z" fill="#5a1420"/>
+    <path d="M0 20Q20 34 40 20T80 20T120 20T160 20T200 20T240 20T280 20T320 20T360 20T400 20" fill="none" stroke="#e9b95e" stroke-opacity=".5"/>
+  </svg>
+
+  <div class="wrap hero-grid">
+    <div class="hero-text reveal">
+      <p class="greet" id="greet">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5" fill="#e9b95e"/></svg>
+        <span id="greetText">어서 오세요</span>
+      </p>
+      <!-- 메모먼트 꾹꾹체로 만든 제목 이미지(slogan.png)가 폴더에 있으면 글자 대신 보여줍니다 -->
+      <img class="slogan-img" id="sloganImg" alt="" aria-hidden="true">
+      <p class="slogan slogan-text">
+        막이 오르기 전,<br>
+        <span class="lit-word">길</span>부터 밝혀<br>두는 사람
+      </p>
+      <div class="who">
+        <div class="photo">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <rect width="120" height="120" fill="#222636"/>
+            <circle cx="60" cy="48" r="20" fill="#7d93ff" opacity=".85"/>
+            <path d="M22 120c4-26 20-40 38-40s34 14 38 40z" fill="#7d93ff" opacity=".85"/>
+            <circle cx="94" cy="26" r="7" fill="#e9b95e"/>
+          </svg>
+          <img src="photo.jpg" alt="신혜경 사진" onerror="this.remove()">
+        </div>
+        <div>
+          <h1 id="heroName"><small>웹/앱 관리자</small>신혜경</h1>
+          <p class="oneline">예술의전당 홈페이지와 싹패스앱을 관리합니다.</p>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#contact">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          편지 띄우기
+        </a>
+        <a class="btn btn-ghost" href="#about">이야기 듣기</a>
+      </div>
+    </div>
+
+    <!-- 일러스트: 어두운 무대 위 초롱이 비추는 징검다리 길 -->
+    <div class="hero-art reveal" aria-hidden="true">
+      <svg viewBox="0 0 480 420">
+        <defs>
+          <radialGradient id="lgl"><stop offset="0" stop-color="#ffd98a" stop-opacity=".75"/><stop offset="1" stop-color="#ffd98a" stop-opacity="0"/></radialGradient>
+          <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2016"/><stop offset="1" stop-color="#0d0e14"/></linearGradient>
+          <radialGradient id="pool" cx="50%" cy="50%"><stop offset="0" stop-color="#ffd98a" stop-opacity=".35"/><stop offset="1" stop-color="#ffd98a" stop-opacity="0"/></radialGradient>
+        </defs>
+        <!-- 별빛 먼지 -->
+        <g fill="#e9b95e">
+          <circle class="twinkle" cx="60" cy="50" r="2"/><circle class="twinkle" cx="140" cy="110" r="1.6"/>
+          <circle class="twinkle" cx="230" cy="40" r="2.2"/><circle class="twinkle" cx="190" cy="170" r="1.4"/>
+          <circle class="twinkle" cx="90" cy="200" r="1.6"/><circle class="twinkle" cx="260" cy="120" r="1.4"/>
+        </g>
+        <!-- 무대 바닥 -->
+        <path d="M0 290 H480 V420 H0Z" fill="url(#floor)"/>
+        <path d="M0 290 H480" stroke="#e9b95e" stroke-opacity=".35"/>
+        <g stroke="#e9b95e" stroke-opacity=".08"><path d="M60 290 L0 420M140 290 L100 420M220 290 L210 420M300 290 L320 420M380 290 L430 420"/></g>
+        <!-- 빛 웅덩이 -->
+        <ellipse cx="300" cy="330" rx="170" ry="40" fill="url(#pool)"/>
+        <!-- 징검다리: 찾기 · 예매 · 결제 → 무대 -->
+        <g fill="#3a3326" stroke="#e9b95e" stroke-opacity=".45">
+          <ellipse cx="70" cy="398" rx="34" ry="10"/>
+          <ellipse cx="160" cy="378" rx="28" ry="9"/>
+          <ellipse cx="236" cy="358" rx="23" ry="7.5"/>
+          <ellipse cx="300" cy="340" rx="18" ry="6"/>
+        </g>
+        <g font-family="inherit" font-size="12" font-weight="700" fill="#f6dca6" text-anchor="middle">
+          <text x="70" y="402">찾기</text><text x="160" y="382">예매</text><text x="236" y="362">결제</text>
+        </g>
+        <!-- 작은 무대 -->
+        <g transform="translate(340 250)">
+          <rect x="0" y="0" width="90" height="56" rx="4" fill="#1a1d2a" stroke="#e9b95e" stroke-opacity=".5"/>
+          <path d="M4 4 h36 q-6 26 -36 46z" fill="#7e2230"/>
+          <path d="M86 4 h-36 q6 26 36 46z" fill="#7e2230"/>
+          <circle class="glow" cx="45" cy="38" r="7" fill="#ffd98a"/>
+        </g>
+        <!-- 청사초롱 -->
+        <g transform="translate(70 0)">
+          <line x1="40" y1="0" x2="40" y2="60" stroke="#6b6f80" stroke-width="2"/>
+          <g class="lantern-sway">
+            <circle class="glow" cx="40" cy="120" r="90" fill="url(#lgl)"/>
+            <line x1="40" y1="0" x2="40" y2="62" stroke="#6b6f80" stroke-width="2"/>
+            <rect x="16" y="62" width="48" height="10" rx="3" fill="#2f4bbf"/>
+            <path d="M14 72 h52 v28 H14z" fill="#4d66d6"/>
+            <path d="M14 100 h52 v36 H14z" fill="#b8452f"/>
+            <path d="M14 72 h52 v64 H14z" fill="#ffd98a" opacity=".35"/>
+            <g stroke="#fff3d6" stroke-width="1" opacity=".5"><line x1="27" y1="72" x2="27" y2="136"/><line x1="40" y1="72" x2="40" y2="136"/><line x1="53" y1="72" x2="53" y2="136"/></g>
+            <rect x="16" y="136" width="48" height="10" rx="3" fill="#2f4bbf"/>
+            <g stroke="#e9b95e" stroke-width="2"><line x1="34" y1="146" x2="32" y2="178"/><line x1="40" y1="146" x2="40" y2="182"/><line x1="46" y1="146" x2="48" y2="178"/></g>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- 2. 자기소개 -->
+<section id="about" class="lit" aria-labelledby="aboutTitle">
+  <div class="wrap story">
+    <div class="story-text reveal">
+      <p class="eyebrow">제1막 · 초롱을 켜는 사람</p>
+      <h2 id="aboutTitle">객석의 불이 꺼지기 전,<br>저는 먼저 불을 켭니다</h2>
+      <p>공연장에 도착하기 훨씬 전부터 관객의 여정은 시작됩니다. 보고 싶은 공연을 찾고, 좌석을 고르고, 표를 손에 쥐기까지 — 그 모든 걸음이 예술의전당 홈페이지와 싹패스앱 위에서 이루어지죠.</p>
+      <p>저는 그 길이 어둡거나 끊기지 않도록 초롱을 들고 서 있는 웹/앱 관리자 신혜경입니다. 홈페이지와 앱을 돌보고, 매표와 대관처럼 사람과 일정이 촘촘히 얽힌 업무가 화면 위에서 매끄럽게 흐르도록 살핍니다.</p>
+      <p>여러 시스템이 서로 말을 주고받는 연동 업무도 제 몫이에요. 보이지 않는 곳의 연결이 단단해야 보이는 곳의 경험이 편안해진다고 믿습니다.</p>
+      <p>관객에게는 쉬운 길을, 함께 일하는 동료에게는 믿을 수 있는 등불을 — 그게 제가 매일 지키려는 약속입니다.</p>
+    </div>
+    <blockquote class="quote reveal">
+      좋은 길은 걷는 사람이<br>길이 있었다는 것조차 모르게 해요.
+      <span>— 제가 화면을 바라보는 방식</span>
+    </blockquote>
+  </div>
+</section>
+
+<!-- 3. 키워드 -->
+<section class="lit" aria-labelledby="keyTitle">
+  <div class="wrap">
+    <p class="eyebrow reveal">제2막 · 세 개의 조명</p>
+    <h2 id="keyTitle" class="reveal">저를 비추는 세 단어</h2>
+    <p class="lead reveal">카드를 눌러 뒤집어 보세요. 조명 뒤에 숨은 이야기가 있어요.</p>
+    <div class="keys">
+      <button class="flip reveal" type="button" aria-pressed="false">
+        <span class="flip-inner">
+          <span class="face front">
+            <svg class="ico" viewBox="0 0 56 56" aria-hidden="true"><circle cx="16" cy="28" r="10" fill="none" stroke="#7d93ff" stroke-width="3"/><circle cx="40" cy="28" r="10" fill="none" stroke="#e9b95e" stroke-width="3"/><path d="M26 28h4" stroke="#f3efe6" stroke-width="3"/></svg>
+            <span class="num">KEYWORD 01</span>
+            <span class="kw">잇다</span>
+            <span class="kw-sub">연결 · 연동</span>
+            <span class="hint">눌러서 펼치기 ↻</span>
+          </span>
+          <span class="face back">
+            <strong>끊김 없는 한 줄의 길</strong>
+            <p>홈페이지, 앱, 매표, 대관 — 서로 다른 시스템이 같은 언어로 이야기하도록 다리를 놓습니다. 관객은 그 이음새를 느끼지 못할 때 가장 편안하니까요.</p>
+          </span>
+        </span>
+      </button>
+      <button class="flip reveal" type="button" aria-pressed="false">
+        <span class="flip-inner">
+          <span class="face front">
+            <svg class="ico" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="27" r="20" fill="#e9b95e" opacity=".15"/><rect x="18" y="12" width="20" height="30" rx="4" fill="#ffd98a"/><rect x="16" y="9" width="24" height="5" rx="2" fill="#7d93ff"/><rect x="16" y="40" width="24" height="5" rx="2" fill="#7d93ff"/><path d="M28 45v6" stroke="#e9b95e" stroke-width="3"/></svg>
+            <span class="num">KEYWORD 02</span>
+            <span class="kw">비추다</span>
+            <span class="kw-sub">안내 · 길잡이</span>
+            <span class="hint">눌러서 펼치기 ↻</span>
+          </span>
+          <span class="face back">
+            <strong>헤매지 않게, 먼저 밝혀 두기</strong>
+            <p>처음 온 관객도 원하는 공연과 좌석까지 막힘없이 닿을 수 있도록, 화면 곳곳에 이정표를 세우고 어두운 구석을 찾아 밝힙니다.</p>
+          </span>
+        </span>
+      </button>
+      <button class="flip reveal" type="button" aria-pressed="false">
+        <span class="flip-inner">
+          <span class="face front">
+            <svg class="ico" viewBox="0 0 56 56" aria-hidden="true"><circle cx="24" cy="24" r="12" fill="none" stroke="#7d93ff" stroke-width="3"/><path d="m33 33 10 10" stroke="#f3efe6" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="4" fill="#e9b95e"/></svg>
+            <span class="num">KEYWORD 03</span>
+            <span class="kw">살피다</span>
+            <span class="kw-sub">세심함 · 안정</span>
+            <span class="hint">눌러서 펼치기 ↻</span>
+          </span>
+          <span class="face back">
+            <strong>불씨가 꺼지지 않도록</strong>
+            <p>예매가 몰리는 순간에도, 아무도 보지 않는 새벽에도 서비스가 제자리에 있는지 살핍니다. 작은 이상 신호를 먼저 알아차리는 것이 제 일의 절반이에요.</p>
+          </span>
+        </span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- 4. 담당 업무 -->
+<section class="lit" aria-labelledby="workTitle">
+  <div class="wrap">
+    <p class="eyebrow reveal">제3막 · 무대 뒤의 장면들</p>
+    <h2 id="workTitle" class="reveal">제가 밝히는 네 갈래 길</h2>
+    <p class="lead reveal">관객이 공연장 문을 열기까지, 그리고 무대가 누군가에게 빌려지기까지. 장면마다 제가 하는 일을 적어 보았어요.</p>
+    <div class="works">
+      <article class="card work reveal">
+        <span class="no" aria-hidden="true">01</span>
+        <span class="scene">장면 1 · 첫 번째 문</span>
+        <h3>홈페이지·앱 관리</h3>
+        <p class="prob"><b>이런 순간</b> — 보고 싶은 공연이 어디 있는지, 정보가 맞는지 헷갈릴 때</p>
+        <p class="sol">관객이 가장 먼저 여는 문을 매일 정돈합니다. 콘텐츠와 화면을 점검하고 <b>어디서 들어와도 길을 잃지 않도록</b> 홈페이지와 앱을 같은 결로 다듬어요.</p>
+      </article>
+      <article class="card work reveal">
+        <span class="no" aria-hidden="true">02</span>
+        <span class="scene">장면 2 · 표를 손에 쥐는 순간</span>
+        <h3>매표</h3>
+        <p class="prob"><b>이런 순간</b> — 기다리던 공연의 예매가 열리고, 많은 사람이 한꺼번에 몰릴 때</p>
+        <p class="sol">예매 흐름이 끊기지 않도록 미리 살피고, 문제가 생기면 원인을 찾아 빠르게 길을 다시 잇습니다. <b>설레는 마음이 불안으로 바뀌지 않게</b> 지키는 일이에요.</p>
+      </article>
+      <article class="card work reveal">
+        <span class="no" aria-hidden="true">03</span>
+        <span class="scene">장면 3 · 무대를 빌리는 사람들</span>
+        <h3>대관</h3>
+        <p class="prob"><b>이런 순간</b> — 공간을 빌리려는 단체가 절차와 일정을 한눈에 파악하기 어려울 때</p>
+        <p class="sol">대관에 얽힌 일정과 정보가 온라인에서 정확하게 오가도록 돕습니다. <b>무대를 꿈꾸는 사람들의 첫 단계</b>가 복잡하지 않도록요.</p>
+      </article>
+      <article class="card work reveal">
+        <span class="no" aria-hidden="true">04</span>
+        <span class="scene">장면 4 · 보이지 않는 다리</span>
+        <h3>연동 업무</h3>
+        <p class="prob"><b>이런 순간</b> — 시스템마다 정보가 달라 화면에 엇갈린 내용이 보일 때</p>
+        <p class="sol">여러 시스템 사이의 데이터가 정확히 주고받아지도록 연결을 관리합니다. <b>한 곳을 고치면 모든 곳이 맞게</b> — 이음새가 단단해야 길이 흔들리지 않아요.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 5. 원칙 -->
+<section class="lit" aria-labelledby="ruleTitle">
+  <div class="wrap">
+    <p class="eyebrow reveal">막간 · 초롱지기의 약속</p>
+    <h2 id="ruleTitle" class="reveal">일할 때 꼭 지키는 세 가지</h2>
+    <p class="lead reveal">화려한 조명보다 오래 남는 건 태도라고 생각해요.</p>
+    <ol class="principles">
+      <li class="reveal">
+        <span class="mark" aria-hidden="true">1</span>
+        <div><h3>관객의 걸음으로 먼저 걸어본다</h3><p>고치기 전에, 만들기 전에 직접 사용자 자리에 서서 처음부터 끝까지 걸어 봅니다.</p></div>
+      </li>
+      <li class="reveal">
+        <span class="mark" aria-hidden="true">2</span>
+        <div><h3>불은 꺼지지 않게, 안정이 먼저</h3><p>새로운 것을 더하기 전에 지금 켜진 불이 흔들리지 않는지부터 확인합니다.</p></div>
+      </li>
+      <li class="reveal">
+        <span class="mark" aria-hidden="true">3</span>
+        <div><h3>기록으로 다음 사람의 길을 잇는다</h3><p>한 번 겪은 문제는 기록으로 남겨, 다음에 같은 길을 걷는 사람이 덜 헤매게 합니다.</p></div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- 6. 관심 분야 -->
+<section class="lit" aria-labelledby="tagTitle">
+  <div class="wrap split">
+    <div class="head">
+      <p class="eyebrow reveal">제4막 · 마음이 머무는 곳</p>
+      <h2 id="tagTitle" class="reveal">요즘 자꾸<br>눈길이 가는 것들</h2>
+    </div>
+    <ul class="pills reveal" aria-label="관심 분야">
+      <li class="hot">홈페이지 운영</li>
+      <li class="hot">앱 서비스 관리</li>
+      <li>온라인 매표</li>
+      <li>대관 프로세스</li>
+      <li>시스템 연동</li>
+      <li>사용자 경험</li>
+      <li>예매 흐름 개선</li>
+      <li>데이터 정합성</li>
+      <li>웹 접근성</li>
+      <li>서비스 안정성</li>
+      <li>공연예술</li>
+      <li>관객 여정</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 7. 함께 일하면 좋은 점 -->
+<section class="lit" aria-labelledby="goodTitle">
+  <div class="wrap">
+    <p class="eyebrow reveal">제5막 · 같은 무대에 선다면</p>
+    <h2 id="goodTitle" class="reveal">저와 함께하면 이런 점이 좋아요</h2>
+    <div class="goods">
+      <article class="card good reveal">
+        <svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="#7d93ff" opacity=".15"/><path d="M14 30c6-10 18-10 24 0" fill="none" stroke="#7d93ff" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="30" r="4" fill="#7d93ff"/><circle cx="38" cy="30" r="4" fill="#e9b95e"/></svg>
+        <h3>통역사가 생겨요</h3>
+        <p>기획·운영 부서의 바람과 시스템의 사정 사이에서, 서로가 이해할 수 있는 말로 옮겨 드립니다.</p>
+      </article>
+      <article class="card good reveal">
+        <svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="#e9b95e" opacity=".15"/><path d="M26 12v14l9 6" fill="none" stroke="#f3efe6" stroke-width="3" stroke-linecap="round"/><circle cx="26" cy="26" r="3" fill="#e9b95e"/></svg>
+        <h3>큰 그림이 한눈에</h3>
+        <p>홈페이지부터 앱, 매표, 대관까지 흐름 전체를 알기에 “이걸 바꾸면 어디에 영향이 갈지”를 함께 짚어 드려요.</p>
+      </article>
+      <article class="card good reveal">
+        <svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="#ff9a8a" opacity=".14"/><path d="M17 27l6 6 12-13" fill="none" stroke="#e9b95e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>마음 놓고 맡길 수 있어요</h3>
+        <p>작은 요청도 끝까지 챙기고, 진행 상황을 먼저 알려 드립니다. 조명이 켜져 있다는 걸 늘 확인하실 수 있게요.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 8. 경력 타임라인 -->
+<section class="lit" aria-labelledby="timeTitle">
+  <div class="wrap split">
+    <div class="head">
+      <p class="eyebrow reveal">제6막 · 지나온 징검다리</p>
+      <h2 id="timeTitle" class="reveal">한 걸음씩<br>건너온 길</h2>
+      <p class="lead reveal">연도와 세부 내용은 실제 이력에 맞게 채워 주세요.</p>
+    </div>
+    <ol class="timeline">
+      <li class="now reveal">
+        <span class="when"><span class="todo">[수정 필요: 시작 연도]</span> — 현재</span>
+        <h3>예술의전당 · 웹/앱 관리자</h3>
+        <p>홈페이지와 싹패스앱 관리, 매표·대관 관련 온라인 업무, 시스템 연동 업무를 맡고 있습니다.</p>
+      </li>
+      <li class="reveal">
+        <span class="when"><span class="todo">[수정 필요]</span> 연도</span>
+        <h3><span class="todo">[수정 필요]</span> 이전 소속 · 직무</h3>
+        <p>이전 경력에서 맡았던 주요 업무를 적어 주세요.</p>
+      </li>
+      <li class="reveal">
+        <span class="when"><span class="todo">[수정 필요]</span> 연도</span>
+        <h3><span class="todo">[수정 필요]</span> 첫걸음</h3>
+        <p>이 길을 처음 걷기 시작한 계기나 첫 경력을 적어 주세요.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- 9. FAQ -->
+<section class="lit" aria-labelledby="faqTitle">
+  <div class="wrap">
+    <p class="eyebrow reveal">커튼콜 전 · 자주 받는 질문</p>
+    <h2 id="faqTitle" class="reveal">이런 것, 물어보셔도 돼요</h2>
+    <div class="faq">
+      <details class="reveal">
+        <summary><span class="q">Q.</span><span>홈페이지나 앱에 고칠 내용이 있으면 어떻게 요청하면 되나요?</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <p class="a">어느 화면의 어떤 부분인지, 원하는 모습이 무엇인지 함께 알려 주시면 가장 빨라요. 캡처 한 장이면 길 찾기가 훨씬 쉬워집니다.</p>
+      </details>
+      <details class="reveal">
+        <summary><span class="q">Q.</span><span>홈페이지와 앱에 보이는 정보가 서로 다르면요?</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <p class="a">연동 과정에서 생긴 엇갈림일 수 있어요. 발견한 위치와 시각을 알려 주시면 어느 이음새에서 문제가 생겼는지 추적해 바로잡겠습니다.</p>
+      </details>
+      <details class="reveal">
+        <summary><span class="q">Q.</span><span>새로운 기능을 넣고 싶은데, 먼저 상의해도 될까요?</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <p class="a">물론이에요, 오히려 일찍 이야기해 주실수록 좋아요. 매표·대관·연동 흐름에 어떤 영향이 있을지 함께 살펴보고 가장 안전한 길을 찾아 드릴게요.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- 10. 연락: 커튼콜 -->
+<section id="contact" aria-labelledby="contactTitle" style="padding-top:20px">
+  <div class="wrap">
+    <div class="contact reveal">
+      <p class="eyebrow">커튼콜</p>
+      <h2 id="contactTitle">함께 걸을 길이 있다면,<br>조명 하나 더 켜 둘게요</h2>
+      <p>궁금한 점도, 같이 풀고 싶은 문제도 편하게 보내 주세요. 읽고 꼭 답장 드리겠습니다.</p>
+      <a class="btn btn-primary" href="mailto:coolhk@sac.or.kr">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        이메일 보내기
+      </a>
+      <span class="mail">coolhk@sac.or.kr</span>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <p>오늘도 화면 너머에서 불을 지키는 중 · 신혜경</p>
+  <p>글꼴: 부산단디고딕 (부산광역시, 공공누리 제1유형)</p>
+</footer>
+
+<!-- 산책하는 초롱이 (오리지널 캐릭터) -->
+<div class="stroll" id="stroll" aria-hidden="true">
+  <div class="bubble" id="bubble"></div>
+  <button class="walker" id="walker" type="button" tabindex="-1" aria-label="초롱이에게 인사하기">
+    <svg viewBox="0 0 64 72">
+      <ellipse cx="32" cy="69" rx="18" ry="3.5" fill="#e9b95e" opacity=".25"/>
+      <g class="leg-l"><path d="M25 58v8" stroke="#f3efe6" stroke-width="3.5" stroke-linecap="round"/></g>
+      <g class="leg-r"><path d="M39 58v8" stroke="#f3efe6" stroke-width="3.5" stroke-linecap="round"/></g>
+      <g class="body">
+        <circle cx="32" cy="34" r="30" fill="#ffd98a" opacity=".12"/>
+        <path d="M32 4v6" stroke="#aeb2c2" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="32" cy="4" r="2.5" fill="#e9b95e"/>
+        <rect x="14" y="10" width="36" height="7" rx="3" fill="#2f4bbf"/>
+        <rect x="12" y="16" width="40" height="18" rx="4" fill="#4d66d6"/>
+        <rect x="12" y="32" width="40" height="20" rx="4" fill="#b8452f"/>
+        <rect x="12" y="16" width="40" height="36" rx="5" fill="#ffd98a" opacity=".3"/>
+        <rect x="14" y="51" width="36" height="7" rx="3" fill="#2f4bbf"/>
+        <rect x="18" y="20" width="28" height="22" rx="10" fill="#fff3d6"/>
+        <circle cx="26" cy="30" r="2.4" fill="#24262b"/>
+        <circle cx="38" cy="30" r="2.4" fill="#24262b"/>
+        <circle cx="26.8" cy="29.2" r=".8" fill="#fff"/>
+        <circle cx="38.8" cy="29.2" r=".8" fill="#fff"/>
+        <ellipse cx="22.5" cy="35" rx="2.5" ry="1.5" fill="#e79a86"/>
+        <ellipse cx="41.5" cy="35" rx="2.5" ry="1.5" fill="#e79a86"/>
+        <path d="M29.5 35q2.5 2.4 5 0" fill="none" stroke="#24262b" stroke-width="1.6" stroke-linecap="round"/>
+      </g>
+    </svg>
+  </button>
+</div>
+
+<script>
+(function(){
+  var root = document.documentElement;
+  var mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : {matches:false};
+  var userOff = false;
+  try{ userOff = localStorage.getItem('motionOff') === '1'; }catch(e){}
+  var btn = document.getElementById('motionBtn');
+  var label = document.getElementById('motionLabel');
+
+  /* 꾹꾹체 제목 이미지: slogan.png가 있으면 글자 대신 표시 */
+  var sImg = document.getElementById('sloganImg');
+  sImg.onload = function(){ root.classList.add('has-slogan-img'); };
+  sImg.onerror = function(){ sImg.remove(); };
+  sImg.src = 'slogan.png';
+
+  function motionOn(){ return !mq.matches && !userOff; }
+  function applyMotion(){
+    var on = motionOn();
+    root.classList.toggle('no-motion', !on);
+    btn.setAttribute('aria-pressed', on ? 'false' : 'true');
+    label.textContent = on ? '움직임 끄기' : '움직임 켜기';
+    if(!on){ stopWalk(true); } else { scheduleWalk(4000); }
+  }
+  btn.addEventListener('click', function(){
+    userOff = !userOff;
+    try{ localStorage.setItem('motionOff', userOff ? '1' : '0'); }catch(e){}
+    applyMotion();
+  });
+  if(mq.addEventListener) mq.addEventListener('change', applyMotion);
+
+  /* 시간대별 인사 */
+  var h = new Date().getHours();
+  var g;
+  if(h >= 5 && h < 11)       g = ['아침', '좋은 아침이에요, 무대 조명을 켜는 시간이에요', '#ffd98a'];
+  else if(h >= 11 && h < 17) g = ['점심', '반가운 한낮이에요, 점심은 맛있게 드셨나요?', '#e9b95e'];
+  else if(h >= 17 && h < 21) g = ['저녁', '좋은 저녁이에요, 곧 막이 오를 시간이네요', '#ff9a8a'];
+  else                        g = ['밤', '고요한 밤이에요, 초롱 하나 켜 두었어요', '#7d93ff'];
+  document.getElementById('greetText').textContent = g[1];
+  document.querySelector('#greet circle').setAttribute('fill', g[2]);
+  var slot = g[0];
+
+  /* 스크롤 등장 */
+  var items = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('is-in'); io.unobserve(e.target); } });
+    }, {rootMargin:'0px 0px -8% 0px', threshold:.08});
+    items.forEach(function(el){ io.observe(el); });
+  } else { items.forEach(function(el){ el.classList.add('is-in'); }); }
+
+  /* 키워드 카드 뒤집기 */
+  document.querySelectorAll('.flip').forEach(function(card){
+    card.addEventListener('click', function(){
+      var f = card.classList.toggle('is-flipped');
+      card.setAttribute('aria-pressed', f ? 'true' : 'false');
+    });
+  });
+
+  /* 산책하는 초롱이 */
+  var stroll = document.getElementById('stroll');
+  var walker = document.getElementById('walker');
+  var bubble = document.getElementById('bubble');
+  var raf = null, timer = null, x = -80, dir = 1, speed = 70, last = 0, paused = false, bubbleT = null;
+  var lines = {
+    '아침':['좋은 아침이에요!','오늘 첫 조명도 제가 켤게요'],
+    '점심':['점심 맛있게 드셨어요?','한낮에도 초롱은 반짝!'],
+    '저녁':['곧 공연 시작이에요!','좋은 저녁 보내세요'],
+    '밤':['밤길 조심히 가세요','저는 계속 불 지키고 있을게요']
+  };
+  var common = ['안녕하세요! 초롱이에요','폴짝! 반가워요','길 잃으면 저를 불러 주세요'];
+
+  function frame(t){
+    if(!last) last = t;
+    var dt = Math.min(.05, (t - last) / 1000); last = t;
+    if(!paused){ x += dir * speed * dt; walker.style.transform = 'translateX(' + x + 'px)'; }
+    var w = window.innerWidth;
+    if((dir > 0 && x > w + 20) || (dir < 0 && x < -90)){ stopWalk(false); scheduleWalk(16000 + Math.random()*14000); return; }
+    raf = requestAnimationFrame(frame);
+  }
+  function startWalk(){
+    if(!motionOn() || document.hidden){ scheduleWalk(8000); return; }
+    dir = Math.random() < .5 ? 1 : -1;
+    x = dir > 0 ? -80 : window.innerWidth + 10;
+    walker.classList.toggle('flip', dir < 0);
+    walker.style.transform = 'translateX(' + x + 'px)';
+    walker.classList.add('walking');
+    stroll.classList.add('on');
+    stroll.setAttribute('aria-hidden','false');
+    walker.tabIndex = 0;
+    last = 0; paused = false;
+    raf = requestAnimationFrame(frame);
+  }
+  function stopWalk(clearTimer){
+    if(raf) cancelAnimationFrame(raf); raf = null;
+    walker.classList.remove('walking','jump');
+    stroll.classList.remove('on');
+    stroll.setAttribute('aria-hidden','true');
+    walker.tabIndex = -1;
+    bubble.classList.remove('show');
+    if(clearTimer && timer){ clearTimeout(timer); timer = null; }
+  }
+  function scheduleWalk(ms){
+    if(timer) clearTimeout(timer);
+    if(!motionOn()) return;
+    timer = setTimeout(startWalk, ms);
+  }
+  walker.addEventListener('click', function(){
+    var pool = (lines[slot] || []).concat(common);
+    bubble.textContent = pool[Math.floor(Math.random()*pool.length)];
+    var bw = Math.min(220, window.innerWidth - 24);
+    var cx = x + 32;
+    var left = Math.max(12, Math.min(window.innerWidth - bw - 12, cx - 40));
+    bubble.style.left = left + 'px';
+    bubble.style.setProperty('--tail', Math.max(14, Math.min(bw - 30, cx - left - 8)) + 'px');
+    bubble.classList.add('show');
+    paused = true;
+    walker.classList.remove('jump'); void walker.offsetWidth; walker.classList.add('jump');
+    clearTimeout(bubbleT);
+    bubbleT = setTimeout(function(){ bubble.classList.remove('show'); paused = false; walker.classList.remove('jump'); }, 2200);
+  });
+  document.addEventListener('visibilitychange', function(){ if(document.hidden){ stopWalk(true); } else { scheduleWalk(5000); } });
+
+  applyMotion();
+})();
+</script>
+</body>
+</html>
